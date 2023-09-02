@@ -8,9 +8,6 @@ from core.transformers import *
 class TestAssertTrueRewritter(LinterTest):
     def test_eval_used(self):
         result = rewrite(AssertTrueCommand, "self.assertEquals(x, True)")
-        print('ooooooooooooooooooooooooooooooooooooooooooooooo')
-        print(result)
-        print('ooooooooooooooooooooooooooooooooooooooooooooooo')
         self.assertAST(result, "self.assertTrue(x)")
 
     def test_eval_used2(self):
