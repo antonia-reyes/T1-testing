@@ -1,14 +1,6 @@
 import ast
 from ..rule import *
 
-# class AttributeVisitor(NodeVisitor):
-#     def __init__(self):
-#         self.nodes = {}
-
-#     def visit_(self, node: FunctionDef):
-#         self.functions[node.name] = node.lineno
-#         NodeVisitor.generic_visit(self, node)
-
 class DuplicatedSetupVisitor(WarningNodeVisitor):
     #  Implementar Clase
     def __init__(self):
@@ -17,8 +9,9 @@ class DuplicatedSetupVisitor(WarningNodeVisitor):
 
     def visit_FunctionDef(self, node: FunctionDef):
         self.methods[node.name] = []
-        # print(self.methods)
+        # print(node.body)
         for n in node.body:
+            # print('NODE')
             # print(type(n))
             if type(n) is ast.Assign:
                 # print(n.targets[0].id)
@@ -30,28 +23,25 @@ class DuplicatedSetupVisitor(WarningNodeVisitor):
                 if type(n.value) is ast.Call:
                     exp.append(n.value.func.attr)
                     # print(n.value.func.attr)
-                    print(n.value.args)
+                    # print(n.value.args)
                     for a in n.value.args:
-                        print(type(a))
-                        print(a.id)
-                        exp.append(a.id)
-                # elif type(n.value) is ast.
+                        # print(type(a))
+                        if type(a) is ast.Name:
+                            # print(a.id)
+                            exp.append(a.id)
+                        elif type(a) is ast.Constant:
+                            # print(a.value)
+                            exp.append(a.value)
+                        elif type(a) is ast.BinOp:
+                            # print('BINOP')
+                            # print(a.left.id)
+                            # print(a.op)
+                            # print(a.right.id)
+                            exp.append(a.left.id)
+                            exp.append(a.op)
+                            exp.append(a.right.id)
 
                 self.methods[node.name].append(exp)
-                    # print(n.value.args)
-            # self.methods[node.name].append([n.])
-            # if type(n) is ast.Call:
-            #     if type(n.func) is ast.Attribute:
-            #         if n.func.attr == 'setUp':
-            #             self.methods[node.name].append(n.lineno)
-        # print(node.body)
-        # visitor = AttributeNodeCounterVisitor()
-        # visitor.visit(node)
-        # if visitor.total() == 0:
-        #     self.addWarning('UncoupledMethodWarning', node.lineno, 'method ' + node.name +
-        #                     ' does not use any attribute')
-        # NodeVisitor.generic_visit(self, node)
-        # print(self.methods)
 
     def check(self):
         print(self.methods)
@@ -73,17 +63,6 @@ class DuplicatedSetupVisitor(WarningNodeVisitor):
         print(base)
         if len(base) > 0:
             self.addWarning('DuplicatedSetup', len(base), f'there are {len(base)} duplicated setup statements')
-
-        
-    # def visit_Assign(self, node: Assign):
-    #     if type(node.value) == Constant:
-    #         print('ASSIGN')
-    #         print('VARAIBLE')
-    #         print(node.targets[0].id)
-    #         print('VALOR')
-    #         print(node.value.value)
-    #         self.variables[node.targets[0].id] = node.value.value
-    #         NodeVisitor.generic_visit(self, node)
 
 
 class DuplicatedSetupRule(Rule):
