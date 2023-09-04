@@ -27,14 +27,14 @@ class UnusedVariableVisitor(WarningNodeVisitor):
     
     def visit_Assign(self, node: Assign):
         print("-----------------------------------------")
-        print(self.currentFunction.name)
+        #print(self.currentFunction.name)
         print("-----------------------------------------")
         for target in node.targets:
             if isinstance(target, Name):
-                print(target.id) # variable (por ej x   y   z  )
+                #print(target.id) # variable (por ej x   y   z  )
                 if isinstance(node.value, BinOp): # caso en que y = x + 2, es binop porq es suma
-                    print(node.value.left.id) # x
-                    print(node.value.right.value) # 2
+                    #print(node.value.left.id) # x
+                    #print(node.value.right.value) # 2
                     if isinstance(node.value.left, Name): #sacando la variable del dict
                         if node.value.left.id in self.variables[self.currentFunction.name]:
                             valor_variable = self.variables[self.currentFunction.name].pop(node.value.left.id)
@@ -67,7 +67,7 @@ class UnusedVariableTestRule(Rule):
         
         funciones = visitor.variables.keys()
         print("--------------------------------------")
-        print(visitor.variables)
+        #print(visitor.variables)
         print("--------------------------------------")
         warnings = []
         # print('----------------------------')
