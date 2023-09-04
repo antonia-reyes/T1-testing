@@ -11,10 +11,12 @@ class UnusedVariableVisitor(WarningNodeVisitor):
     def __init__(self):
         super().__init__()
         self.variables = {}
+        self.currentFunction = None
 
-    # def visit_FunctionDef(self, node):
-    # # Reset variables when entering a new function
-    #     self.variables = {}
+    def visit_FunctionDef(self, node: FunctionDef):
+        self.currentFunction = node
+        self.variables[self.currentFunction.name] = {}
+        NodeVisitor.generic_visit(self, node)
 
 
     # def visit_FunctionDef(self, node: FunctionDef):
@@ -24,6 +26,9 @@ class UnusedVariableVisitor(WarningNodeVisitor):
     #     self.variables = {}
     
     def visit_Assign(self, node: Assign):
+        print("-----------------------------------------")
+        print(self.currentFunction.name)
+        print("-----------------------------------------")
         for target in node.targets:
             if isinstance(target, Name):
                 print(target.id) # variable (por ej x   y   z  )
@@ -31,16 +36,16 @@ class UnusedVariableVisitor(WarningNodeVisitor):
                     print(node.value.left.id) # x
                     print(node.value.right.value) # 2
                     if isinstance(node.value.left, Name): #sacando la variable del dict
-                        if node.value.left.id in self.variables:
-                            valor_variable = self.variables.pop(node.value.left.id)
-                            self.variables[target.id] = [valor_variable[0], node.lineno]
+                        if node.value.left.id in self.variables[self.currentFunction.name]:
+                            valor_variable = self.variables[self.currentFunction.name].pop(node.value.left.id)
+                            self.variables[self.currentFunction.name][target.id] = [valor_variable[0], node.lineno]
                     if isinstance(node.value.right, Name): #sacando la variable del dict
-                        if node.value.right.id in self.variables:
-                            valor_variable = self.variables.pop(node.value.left.id)
-                            self.variables[target.id] = [valor_variable[0], node.lineno]
+                        if node.value.right.id in self.variables[self.currentFunction.name]:
+                            valor_variable = self.variables[self.currentFunction.name].pop(node.value.left.id)
+                            self.variables[self.currentFunction.name][target.id] = [valor_variable[0], node.lineno]
                 #print(node.value.value)
                 if isinstance(node.value, Constant):
-                    self.variables[node.targets[0].id] = [node.value.value, node.lineno]
+                    self.variables[self.currentFunction.name][node.targets[0].id] = [node.value.value, node.lineno]
         #print(self.variables)
 
     def visit_Call(self, node: Call):
@@ -49,9 +54,9 @@ class UnusedVariableVisitor(WarningNodeVisitor):
             if type(node.args[0]) is ast.Constant:
                 pass
             else:
-                if node.args[0].id in self.variables:
-                    valor_variable = self.variables.pop(node.args[0].id)
-                    self.addWarning('AssertTrueWarning', node.lineno, 'useless assert true detected')
+                if node.args[0].id in self.variables[self.currentFunction.name]:
+                    valor_variable = self.variables[self.currentFunction.name].pop(node.args[0].id)
+                    #self.addWarning('AssertTrueWarning', node.lineno, 'useless assert true detected')
 
 
 class UnusedVariableTestRule(Rule):
@@ -60,15 +65,20 @@ class UnusedVariableTestRule(Rule):
         visitor = UnusedVariableVisitor()
         visitor.visit(node)
         
-        no_usadas = visitor.variables.keys()
+        funciones = visitor.variables.keys()
+        print("--------------------------------------")
+        print(visitor.variables)
+        print("--------------------------------------")
         warnings = []
         # print('----------------------------')
         # print(visitor.variables)
         # print('----------------------------')
-        for variable in no_usadas:
-            line_number = visitor.variables[variable][1]
-            message = f'variable {variable} has not been used'
-            warnings.append(Warning('UnusedVariable', line_number, message))
+        for function in funciones:
+            no_usadas = visitor.variables[function].keys()
+            for variable in no_usadas:
+                line_number = visitor.variables[function][variable][1]
+                message = f'variable {variable} has not been used'
+                warnings.append(Warning('UnusedVariable', line_number, message))
 
         print(warnings)
 
